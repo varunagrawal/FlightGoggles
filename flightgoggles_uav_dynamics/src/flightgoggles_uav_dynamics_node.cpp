@@ -156,6 +156,7 @@ initPose_(7,0)
   // Allow for up to 100ms sim time buffer of outgoing IMU messages. 
   // This should improve IMU integration methods on slow client nodes (see issue #63).
   imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 96);  
+  motorPub_ = node_.advertise<mav_msgs::Actuators>("/uav/output/motorspeed", 96);
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   collisionSub_ = node_.subscribe("/uav/collision", 1, &Uav_Dynamics::collisionCallback, this);
   frameRateSub_ = node_.subscribe("/uav/camera/debug/fps", 1, &Uav_Dynamics::fpsCallback, this);
@@ -221,6 +222,12 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
     proceedState();
     imu_.getMeasurement(imuMeasurement_, angVelocity_, specificForceBodyFrame_, currentTime_);
     imuPub_.publish(imuMeasurement_);
+
+    mav_msgs::Actuators motorspeedsMessage;
+    motorspeedsMessage.header.stamp = currentTime_;
+    std::vector<double> motorspeeds(propSpeed_, propSpeed_+sizeof propSpeed_ / sizeof propSpeed_[0]);
+    motorspeedsMessage.angular_velocities = motorspeeds;
+    motorPub_.publish(motorspeedsMessage);
   }
 
 

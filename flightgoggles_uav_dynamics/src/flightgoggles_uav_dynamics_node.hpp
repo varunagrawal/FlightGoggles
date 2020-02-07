@@ -18,6 +18,7 @@
 
 // Messages
 #include <mav_msgs/RateThrust.h>
+#include <mav_msgs/Actuators.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/Imu.h>
@@ -105,6 +106,7 @@ class Uav_Dynamics {
         /// @name Publishers
         //@{
         ros::Publisher imuPub_;
+        ros::Publisher motorPub_;
         ros::Publisher clockPub_;
         //@}
 
