@@ -259,7 +259,7 @@ void imageConsumer(ROSClient *self){
         // Add Camera info message for camera
         sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoLeft));
         cameraInfoMsgCopy->header.frame_id = "/uav/camera/left";
-	cameraInfoMsgCopy->header.stamp = imageTimestamp;
+	    cameraInfoMsgCopy->header.stamp = imageTimestamp;
 	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
 	    if (self->render_stereo) {
