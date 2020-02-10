@@ -28,6 +28,8 @@
 #include <sstream>
 #include <random>
 
+#include "flightgoggles_uav_image.hpp"
+
 class Uav_Imu {
     // This class can be extended if IMU noise is needed etc.
     public:
@@ -146,7 +148,6 @@ class Uav_Dynamics {
         double resetTimeout_ = 0.1;
         // Min input thrust required before drone is allowed to take off.
         double minArmingThrust_ = 9.9; // Newtons
-
 
     private:
 

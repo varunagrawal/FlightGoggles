@@ -220,14 +220,9 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
                        lpf_.filterStateDer_, angAccCommand_, dt_secs);
     computeMotorSpeedCommand();
     proceedState();
+
     imu_.getMeasurement(imuMeasurement_, angVelocity_, specificForceBodyFrame_, currentTime_);
     imuPub_.publish(imuMeasurement_);
-
-    mav_msgs::Actuators motorspeedsMessage;
-    motorspeedsMessage.header.stamp = currentTime_;
-    std::vector<double> motorspeeds(propSpeed_, propSpeed_+sizeof propSpeed_ / sizeof propSpeed_[0]);
-    motorspeedsMessage.angular_velocities = motorspeeds;
-    motorPub_.publish(motorspeedsMessage);
   }
 
 
@@ -441,6 +436,20 @@ void Uav_Dynamics::publishState(void){
   transform.child_frame_id = "uav/imu";
 
   tfPub_.sendTransform(transform);
+
+  // Create the motorspeeds message
+  mav_msgs::Actuators motorspeedsMessage;
+  motorspeedsMessage.header.stamp = currentTime_;
+  std::vector<double> motorspeeds(std::begin(propSpeed_), std::end(propSpeed_));
+  motorspeedsMessage.angular_velocities = motorspeeds;
+
+  ////// Init client to publish state
+  FlightGogglesClient2 flightgogglesclient(node_);
+
+  // flightgogglesclient->publishState(currentTime_,
+  //                                   transform,
+  //                                   motorspeedsMessage,
+  //                                   lastCommandMsg_);
 }
 
 /**
