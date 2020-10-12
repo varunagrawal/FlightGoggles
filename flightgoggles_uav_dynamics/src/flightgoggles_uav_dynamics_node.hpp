@@ -27,6 +27,7 @@
 #include <std_msgs/Empty.h>
 #include <rosgraph_msgs/Clock.h>
 #include <nav_msgs/Odometry.h>
+#include "flightgoggles_uav_dynamics/UAVState.h"
 
 #include "../libs/multicopterDynamicsSim/multicopterDynamicsSim.hpp"
 
@@ -121,6 +122,8 @@ class Uav_Dynamics {
         ros::Publisher odomPub_;
         ros::Publisher clockPub_;
 
+        ros::Publisher uavStatePub_;
+
         void publishState(void);
         void publishIMUMeasurement(void);
         void publishStaticMotorTransform(
@@ -178,6 +181,7 @@ class Uav_Dynamics {
         bool resetRequested_ = false;
         bool useRateThrustController_ = true;
         bool useRungeKutta4Integrator_ = false;
+        std::vector<double> propSpeedCommand_;
         //@}
 
         void resetState(void);

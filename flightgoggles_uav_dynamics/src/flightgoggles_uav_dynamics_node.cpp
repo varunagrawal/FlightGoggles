@@ -264,6 +264,8 @@ node_(nh)
     This should improve IMU integration methods on slow client nodes (see issue #63). */
   imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 96);  
   odomPub_ = node_.advertise<nav_msgs::Odometry>("/uav/odometry", 96);
+  uavStatePub_ = node_.advertise<flightgoggles_uav_dynamics::UAVState>("/uav/state", 96);
+
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   inputMotorspeedCommandSub_ = node_.subscribe("/uav/input/motorspeed", 1, &Uav_Dynamics::inputMotorspeedCallback, this);
   collisionSub_ = node_.subscribe("/uav/collision", 1, &Uav_Dynamics::collisionCallback, this);
@@ -323,7 +325,8 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   // Only propagate simulation if armed
   if (armed_) {  
 
-    std::vector<double> propSpeedCommand(4, 0.);
+    // Initialize propeller speed vector
+    propSpeedCommand_ = {0., 0., 0., 0.};
 
     if(useRateThrustController_){
       // Proceed LPF state based on gyro measurement
@@ -333,23 +336,23 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
       if(lastCommandMsg_){
         pid_.controlUpdate(lastCommandMsg_->angular_rates, lastCommandMsg_->thrust.z,
                           lpf_.filterState_, lpf_.filterStateDer_,
-                          propSpeedCommand, dt_secs);
+                          propSpeedCommand_, dt_secs);
       }
     }
     else{
       if(lastMotorspeedCommandMsg_){
         for (size_t motorIndx = 0; motorIndx < 4; motorIndx++){
-          propSpeedCommand.at(motorIndx) = lastMotorspeedCommandMsg_->angular_velocities[motorIndx];
+          propSpeedCommand_.at(motorIndx) = lastMotorspeedCommandMsg_->angular_velocities[motorIndx];
         }
       }
     }
 
     // Proceed quadcopter dynamics
     if(useRungeKutta4Integrator_){
-      multicopterSim_->proceedState_RK4(dt_secs, propSpeedCommand); 
+      multicopterSim_->proceedState_RK4(dt_secs, propSpeedCommand_); 
     }
     else{
-      multicopterSim_->proceedState_ExplicitEuler(dt_secs, propSpeedCommand);
+      multicopterSim_->proceedState_ExplicitEuler(dt_secs, propSpeedCommand_);
     }
 
     // Get IMU measurements
@@ -478,6 +481,39 @@ void Uav_Dynamics::publishState(void){
   odometrymsg.twist.covariance[0] = -1.;
 
   odomPub_.publish(odometrymsg);
+
+  flightgoggles_uav_dynamics::UAVState state_msg;
+
+  // Use velocity in nav frame
+  odometrymsg.twist.twist.linear.x = velocity(0);
+  odometrymsg.twist.twist.linear.y = velocity(1);
+  odometrymsg.twist.twist.linear.z = velocity(2);
+
+  // Add odometry data
+  state_msg.header = odometrymsg.header;
+  state_msg.odometry = odometrymsg;
+
+  // Add motorspeeds
+  if (lastCommandMsg_ || lastMotorspeedCommandMsg_) {
+    if (propSpeedCommand_.size() > 0) {
+      state_msg.motorspeeds = propSpeedCommand_;
+    }
+  }
+  if(lastMotorspeedCommandMsg_) {
+    state_msg.motorspeeds = lastMotorspeedCommandMsg_->angular_velocities;
+  }
+
+  // Add (normalized) linear force f/m
+  auto forces = multicopterSim_->getVehicleSpecificForce();
+  std::cout << "force: " << forces(0) << " " << forces(1) << " " << forces(2) << std::endl;
+  state_msg.wrench.force.x = forces(0);
+  state_msg.wrench.force.y = forces(1);
+  state_msg.wrench.force.z = forces(2);
+
+  // Add torque
+  // state_msg.wrench.torque = multicopterSim_->getControlMoment(lastMotorspeedCommandMsg_->angular_velocities, multicopterSim_->getMotorSpeedDerivative());
+
+  uavStatePub_.publish(state_msg);
 }
 
 /**
@@ -720,7 +756,7 @@ void Uav_Pid::controlUpdate(geometry_msgs::Vector3 & command, double thrustComma
  */
 void Uav_Pid::thrustMixing(std::vector<double> & propSpeedCommand, double * angAccCommand, double thrustCommand){
 
-  // Compute torqu and thrust vector
+  // Compute torque and thrust vector
   double momentThrust[4] = {
     vehicleInertia_[0]*angAccCommand[0],
     vehicleInertia_[1]*angAccCommand[1],
