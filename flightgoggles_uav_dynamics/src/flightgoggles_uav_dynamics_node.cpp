@@ -493,25 +493,30 @@ void Uav_Dynamics::publishState(void){
   state_msg.header = odometrymsg.header;
   state_msg.odometry = odometrymsg;
 
-  // Add motorspeeds
-  if (lastCommandMsg_ || lastMotorspeedCommandMsg_) {
-    if (propSpeedCommand_.size() > 0) {
-      state_msg.motorspeeds = propSpeedCommand_;
-    }
-  }
-  if(lastMotorspeedCommandMsg_) {
-    state_msg.motorspeeds = lastMotorspeedCommandMsg_->angular_velocities;
-  }
-
   // Add (normalized) linear force f/m
   auto forces = multicopterSim_->getVehicleSpecificForce();
-  std::cout << "force: " << forces(0) << " " << forces(1) << " " << forces(2) << std::endl;
   state_msg.wrench.force.x = forces(0);
   state_msg.wrench.force.y = forces(1);
   state_msg.wrench.force.z = forces(2);
 
+  // Add motorspeeds
+  state_msg.motorspeeds = multicopterSim_->getMotorSpeed();
+
   // Add torque
-  // state_msg.wrench.torque = multicopterSim_->getControlMoment(lastMotorspeedCommandMsg_->angular_velocities, multicopterSim_->getMotorSpeedDerivative());
+  if (lastCommandMsg_ || lastMotorspeedCommandMsg_) {
+    if (propSpeedCommand_.size() > 0) {
+      std::vector<double> motorSpeedDer(multicopterSim_->getNumCopter());
+      std::vector<double> motorSpeed = state_msg.motorspeeds;
+      std::vector<double> motorSpeedCommand = propSpeedCommand_;
+      multicopterSim_->getMotorSpeedDerivative(motorSpeedDer, motorSpeed,
+                                               motorSpeedCommand);
+
+      Eigen::Vector3d torque = multicopterSim_->getControlMoment(motorSpeed, motorSpeedDer);
+      state_msg.wrench.torque.x = torque(0);
+      state_msg.wrench.torque.y = torque(1);
+      state_msg.wrench.torque.z = torque(2);
+    }
+  }
 
   uavStatePub_.publish(state_msg);
 }
