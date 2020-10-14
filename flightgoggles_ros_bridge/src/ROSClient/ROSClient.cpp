@@ -68,7 +68,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     populateRenderSettings();
 
     // init image publisher
-    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 1);
+    imagePubLeft_ = it_.advertiseCamera("/uav/camera/left/image_rect_color", 100);
     if(render_stereo) {
         imagePubRight_ = it_.advertiseCamera("/uav/camera/right/image_rect_color", 1);
     }
@@ -86,7 +86,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     tfSubscriber_ = ns_.subscribe("/tf", 1, &ROSClient::tfCallback, this);
 
     // Publish the estimated latency
-    fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);    
+    fpsPublisher_ = ns_.advertise<std_msgs::Float32>("/uav/camera/debug/fps", 1);
 
     // Subscribe to IR beacon locations
 //    irSubscriber_ = ns_.subscribe("/challenge/ir_BeaconsGroundTruth", 1, &ROSClient::irBeaconPointcloudCallback, this);
@@ -241,7 +241,7 @@ void imageConsumer(ROSClient *self){
         // Calculate average FPS every second.
 	    std_msgs::Float32 fps_;
 	    if (self->timeSinceLastMeasure_.toSec() != 0) {
-	    double t = (ros::WallTime::now() - self->timeSinceLastMeasure_).toSec();
+	        double t = (ros::WallTime::now() - self->timeSinceLastMeasure_).toSec();
 	        if (t > 1) {
 	            fps_.data = self->frameCount_ / t;
 	            self->fpsPublisher_.publish(fps_);
