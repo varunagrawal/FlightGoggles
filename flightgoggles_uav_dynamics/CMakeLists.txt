@@ -3,7 +3,6 @@ project(flightgoggles_uav_dynamics)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
-# add_compile_options(-std=c++11)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W")
 
 # Default to building in release mode when no options are set
