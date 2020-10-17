@@ -74,7 +74,7 @@ ROSClient::ROSClient(ros::NodeHandle ns, ros::NodeHandle nhPrivate):
     }
 
     // Collision publisher
-    collisionPub_ = ns_.advertise<std_msgs::Empty>("/uav/collision", 1);
+    collisionPub_ = ns_.advertise<std_msgs::Header>("/uav/collision", 1);
 
     lidarPub_ = ns_.advertise<sensor_msgs::Range>("/uav/sensors/downward_laser_rangefinder", 1);
 
@@ -276,7 +276,8 @@ void imageConsumer(ROSClient *self){
 
         // Check for camera collision
         if (renderOutput.renderMetadata.hasCameraCollision){
-            std_msgs::Empty msg;
+            std_msgs::Header msg;
+            msg.stamp = ros::Time::now();
             self->collisionPub_.publish(msg);
         }
 

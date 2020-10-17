@@ -154,7 +154,7 @@ class Uav_Dynamics {
         void inputMotorspeedCallback(mav_msgs::Actuators::Ptr msg);
         void armCallback(std_msgs::Empty::Ptr msg);
         void resetCallback(std_msgs::Empty::Ptr msg);
-        void collisionCallback(std_msgs::Empty::Ptr msg);
+        void collisionCallback(std_msgs::Header::Ptr msg);
 	    void fpsCallback(std_msgs::Float32::Ptr msg);
         //@}
 
