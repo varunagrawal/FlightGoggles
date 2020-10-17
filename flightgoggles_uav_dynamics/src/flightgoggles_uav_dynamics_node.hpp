@@ -125,6 +125,7 @@ class Uav_Dynamics {
         ros::Publisher uavStatePub_;
 
         void publishState(void);
+        void publishUavDynamics();
         void publishIMUMeasurement(void);
         void publishStaticMotorTransform(
             const ros::Time & timeStamp, const char * frame_id,

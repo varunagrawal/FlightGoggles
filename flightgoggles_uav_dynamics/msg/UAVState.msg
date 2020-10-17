@@ -1,10 +1,12 @@
 Header header
 
-sensor_msgs/Image left_image
-sensor_msgs/Image right_image
+string child_frame_id
 
-nav_msgs/Odometry odometry
+geometry_msgs/Pose pose
+geometry_msgs/Twist twist
+geometry_msgs/Wrench wrench
 
 float64[] motorspeeds
 
-geometry_msgs/Wrench wrench
+# sensor_msgs/Image left_image
+# sensor_msgs/Image right_image
