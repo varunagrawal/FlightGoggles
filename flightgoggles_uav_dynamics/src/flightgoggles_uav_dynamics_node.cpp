@@ -365,6 +365,9 @@ void Uav_Dynamics::simulationLoopTimerCallback(const ros::WallTimerEvent& event)
   // Publish quadcopter state
   publishState();
 
+  // Publish quadcopter state & dynamics as a single message
+  publishUavDynamics();
+
   // Update clockscale if necessary
   if (actualFps != -1 && actualFps < 1e3 && useSimTime_ && useAutomaticClockscale_) {
      clockScale =  (actualFps / 55.0);
@@ -481,44 +484,70 @@ void Uav_Dynamics::publishState(void){
   odometrymsg.twist.covariance[0] = -1.;
 
   odomPub_.publish(odometrymsg);
+}
 
+void Uav_Dynamics::publishUavDynamics() {
   flightgoggles_uav_dynamics::UAVState state_msg;
 
-  // Use velocity in nav frame
-  odometrymsg.twist.twist.linear.x = velocity(0);
-  odometrymsg.twist.twist.linear.y = velocity(1);
-  odometrymsg.twist.twist.linear.z = velocity(2);
+  Eigen::Vector3d position;
+  Eigen::Quaterniond attitude;
+  Eigen::Vector3d velocity;
+  Eigen::Vector3d angularVelocity;
+  std::vector<double> motorSpeeds;
 
-  // Add odometry data
-  state_msg.header = odometrymsg.header;
-  state_msg.odometry = odometrymsg;
+  if ((lastCommandMsg_ || lastMotorspeedCommandMsg_) && propSpeedCommand_.size() > 0) {
 
-  // Add (normalized) linear force f/m
-  auto forces = multicopterSim_->getVehicleSpecificForce();
-  state_msg.wrench.force.x = forces(0);
-  state_msg.wrench.force.y = forces(1);
-  state_msg.wrench.force.z = forces(2);
+    // Add timestamp
+    state_msg.header.stamp = currentTime_;
+    state_msg.header.frame_id = "world";
+    state_msg.child_frame_id = "uav/imu";
 
-  // Add motorspeeds
-  state_msg.motorspeeds = multicopterSim_->getMotorSpeed();
+    // Get vehicle state (t, R, v, wb) and motorspeeds
+    multicopterSim_->getVehicleState(position, velocity, angularVelocity, attitude, motorSpeeds);
 
-  // Add torque
-  if (lastCommandMsg_ || lastMotorspeedCommandMsg_) {
-    if (propSpeedCommand_.size() > 0) {
-      std::vector<double> motorSpeedDer(multicopterSim_->getNumCopter());
-      std::vector<double> motorSpeed = state_msg.motorspeeds;
-      std::vector<double> motorSpeedCommand = propSpeedCommand_;
-      multicopterSim_->getMotorSpeedDerivative(motorSpeedDer, motorSpeed,
-                                               motorSpeedCommand);
+    // Add translation
+    state_msg.pose.position.x = position(0);
+    state_msg.pose.position.y = position(1);
+    state_msg.pose.position.z = position(2);
 
-      Eigen::Vector3d torque = multicopterSim_->getControlMoment(motorSpeed, motorSpeedDer);
-      state_msg.wrench.torque.x = torque(0);
-      state_msg.wrench.torque.y = torque(1);
-      state_msg.wrench.torque.z = torque(2);
-    }
+    // Add rotation
+    state_msg.pose.orientation.w = attitude.w();
+    state_msg.pose.orientation.x = attitude.x();
+    state_msg.pose.orientation.y = attitude.y();
+    state_msg.pose.orientation.z = attitude.z();
+
+    // Add velocity in nav frame
+    state_msg.twist.linear.x = velocity(0);
+    state_msg.twist.linear.y = velocity(1);
+    state_msg.twist.linear.z = velocity(2);
+
+    // Add angular velocity in body frame
+    state_msg.twist.angular.x = angularVelocity(0);
+    state_msg.twist.angular.y = angularVelocity(1);
+    state_msg.twist.angular.z = angularVelocity(2);
+
+    // Add motorspeeds
+    state_msg.motorspeeds = motorSpeeds;
+
+    std::vector<double> motorSpeedDer(multicopterSim_->getNumCopter());
+    multicopterSim_->getMotorSpeedDerivative(motorSpeedDer, motorSpeeds,
+                                              propSpeedCommand_);
+
+    auto forces = multicopterSim_->getVehicleSpecificForce();
+    auto torque = multicopterSim_->getControlMoment(motorSpeeds, motorSpeedDer);
+
+    // Add (normalized) linear force f/m in body frame
+    state_msg.wrench.force.x = forces(0);
+    state_msg.wrench.force.y = forces(1);
+    state_msg.wrench.force.z = forces(2);
+
+    // Add torque
+    state_msg.wrench.torque.x = torque(0);
+    state_msg.wrench.torque.y = torque(1);
+    state_msg.wrench.torque.z = torque(2);
+
+    uavStatePub_.publish(state_msg);
   }
-
-  uavStatePub_.publish(state_msg);
 }
 
 /**
