@@ -411,9 +411,9 @@ void Uav_Dynamics::inputMotorspeedCallback(mav_msgs::Actuators::Ptr msg){
 
 /**
  * @brief Handle the checking of collisions
- * @param msg Empty message, this will be recieved when a collision is detected
+ * @param msg Timestamped message, this will be recieved when a collision is detected
  */
-void Uav_Dynamics::collisionCallback(std_msgs::Empty::Ptr msg){
+void Uav_Dynamics::collisionCallback(std_msgs::Header::Ptr msg){
   hasCollided_ = true;
 }
 
@@ -498,7 +498,7 @@ void Uav_Dynamics::publishUavDynamics() {
   if ((lastCommandMsg_ || lastMotorspeedCommandMsg_) && propSpeedCommand_.size() > 0) {
 
     // Add timestamp
-    state_msg.header.stamp = currentTime_;
+    state_msg.header.stamp = ros::Time::now();
     state_msg.header.frame_id = "world";
     state_msg.child_frame_id = "uav/imu";
 
