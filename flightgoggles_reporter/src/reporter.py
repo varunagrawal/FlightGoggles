@@ -11,7 +11,7 @@ import math
 import numpy as np
 import yaml
 import signal
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Header
 from sensor_msgs.msg import Imu
 
 class Gate():
@@ -105,7 +105,7 @@ class ReporterNode():
 			rospy.logerr("Timeout not specified!")
 			rospy.signal_shutdown("Challenge parameter [timeout] could not be read")
 
-		rospy.Subscriber("/uav/collision", Empty, self.collisionCallback)
+		rospy.Subscriber("/uav/collision", Header, self.collisionCallback)
 
 		inflation = rospy.get_param("/uav/inflation", 0.1)
 
