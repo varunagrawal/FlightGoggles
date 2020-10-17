@@ -14,7 +14,8 @@
     <param name="/use_sim_time" value="true" />
    
     <!-- Read required yaml files" / --> 
-    <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/>
+    <!-- <rosparam command="load" file="$(find flightgoggles)/config/drone/drone.yaml"/> -->
+    <rosparam command="load" file="$(find flightgoggles)/config/drone/varun.yaml"/>
     <rosparam command="load" file="$(find flightgoggles)/config/challenges/nominal_gate_locations.yaml"/>
 
     <!-- Environment Creator -->
