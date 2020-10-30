@@ -259,10 +259,10 @@ void imageConsumer(ROSClient *self){
         // Add Camera info message for camera
         sensor_msgs::CameraInfoPtr cameraInfoMsgCopy(new sensor_msgs::CameraInfo(self->cameraInfoLeft));
         cameraInfoMsgCopy->header.frame_id = "uav/camera/left";
-	cameraInfoMsgCopy->header.stamp = imageTimestamp;
-	    self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
+        cameraInfoMsgCopy->header.stamp = imageTimestamp;
+        self->imagePubLeft_.publish(msg, cameraInfoMsgCopy);
 
-	    if (self->render_stereo) {
+        if (self->render_stereo) {
             sensor_msgs::ImagePtr msg_right = cv_bridge::CvImage(std_msgs::Header(), "bgr8",
                                                                  renderOutput.images[1]).toImageMsg();
             msg_right->header.stamp = imageTimestamp;
