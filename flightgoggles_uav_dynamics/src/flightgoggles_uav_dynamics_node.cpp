@@ -264,7 +264,7 @@ node_(nh)
     This should improve IMU integration methods on slow client nodes (see issue #63). */
   imuPub_ = node_.advertise<sensor_msgs::Imu>("/uav/sensors/imu", 96);  
   odomPub_ = node_.advertise<nav_msgs::Odometry>("/uav/odometry", 96);
-  uavStatePub_ = node_.advertise<flightgoggles_uav_dynamics::UAVState>("/uav/state", 96);
+  uavStatePub_ = node_.advertise<flightgoggles_uav_dynamics::UAVState>("/uav/state", 100000);
 
   inputCommandSub_ = node_.subscribe("/uav/input/rateThrust", 1, &Uav_Dynamics::inputCallback, this);
   inputMotorspeedCommandSub_ = node_.subscribe("/uav/input/motorspeed", 1, &Uav_Dynamics::inputMotorspeedCallback, this);
@@ -280,6 +280,12 @@ node_(nh)
     // Get the current time if we are using wall time. Otherwise, use 0 as initial clock.
     currentTime_ = ros::Time::now();
   }
+
+  // Initialize ground truth file for state
+  std::ofstream states_file;
+  states_file.open("states.csv", std::ios::ate);
+  states_file << "index,seq,timestamp,position x,position y,position z,rotation w,rotation x,rotation y,rotation z,velocity x,velocity y,velocity z,ang x,ang y,ang z,motor 1,motor 2,motor 3,motor 4,force x,force y,force z,torque x,torque y,torque z" << std::endl;
+  states_file.close();
 
   // Init main simulation loop
   simulationLoopTimer_ = node_.createWallTimer(ros::WallDuration(dt_secs/clockScale), &Uav_Dynamics::simulationLoopTimerCallback, this);
@@ -546,7 +552,24 @@ void Uav_Dynamics::publishUavDynamics() {
     state_msg.wrench.torque.y = torque(1);
     state_msg.wrench.torque.z = torque(2);
 
-    uavStatePub_.publish(state_msg);
+    if (armed_) {
+      std::ofstream states_file;
+      states_file.open("states.csv", std::ios::app);
+      states_file << "0,";
+      states_file << state_msg.header.seq << ",";
+      states_file << state_msg.header.stamp << ",";
+      states_file << position(0) << "," << position(1) << "," << position(2) << ",";
+      states_file << attitude.w() << "," << attitude.x() << "," << attitude.y() << "," << attitude.z() << ",";
+      states_file << velocity(0) << "," << velocity(1) << "," << velocity(2) << ",";
+      states_file << angularVelocity(0) << "," << angularVelocity(1) << "," << angularVelocity(2) << ",";
+      states_file << motorSpeeds.at(0) << "," << motorSpeeds.at(1) << "," << motorSpeeds.at(2) << "," << motorSpeeds.at(3) << ",";
+      states_file << forces(0) << "," << forces(1) << "," << forces(2) << ",";
+      states_file << torque(0) << "," << torque(1) << "," << torque(2) << std::endl;
+
+      states_file.close();
+    }
+
+    // uavStatePub_.publish(state_msg);
   }
 }
 
