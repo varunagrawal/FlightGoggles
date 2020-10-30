@@ -33,6 +33,7 @@
 
 #include <sstream>
 #include <random>
+#include <fstream>
 
 /**
  * @brief Low-pass filter class used for angular rate control.
@@ -201,7 +202,8 @@ class Uav_Dynamics {
         z : upward */
 
         /* Motors are numbered counterclockwise (look at quadcopter from above) with
-           motor 1 in the positive quadrant of the X-Y plane (i.e. front left). */
+           motor 1 in the positive quadrant of the X-Y plane of the rotation frame
+           (i.e. front left). */
 
         MulticopterDynamicsSim * multicopterSim_;
         //@}
