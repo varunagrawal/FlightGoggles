@@ -15,14 +15,14 @@ flightgoggles_uav_dynamics:
     motor_rotational_inertia: 6.62e-6
     thrust_coefficient: 1.91e-6
     torque_coefficient: 2.6e-7
-    drag_coefficient: 0.1
+    drag_coefficient: 0.0
     aeromoment_coefficient_xx: 0.003
     aeromoment_coefficient_yy: 0.003
     aeromoment_coefficient_zz: 0.003
     moment_process_noise: 1.25e-7
     force_process_noise: 0.0005
-    use_ratethrust_controller: false
-    use_rungekutta4integrator: true
+    use_ratethrust_controller: true
+    use_rungekutta4integrator: false
 
 flightgoggles_imu:
     accelerometer_variance: 0.005

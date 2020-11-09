@@ -539,7 +539,8 @@ void Uav_Dynamics::publishUavDynamics() {
     multicopterSim_->getMotorSpeedDerivative(motorSpeedDer, motorSpeeds,
                                               propSpeedCommand_);
 
-    auto forces = multicopterSim_->getVehicleSpecificForce();
+    // Force in navigation frame
+    auto forces = attitude * multicopterSim_->getVehicleSpecificForce();
     auto torque = multicopterSim_->getControlMoment(motorSpeeds, motorSpeedDer);
 
     // Add (normalized) linear force f/m in body frame
