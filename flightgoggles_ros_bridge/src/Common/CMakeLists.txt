@@ -6,3 +6,5 @@ target_link_libraries(FlightGogglesClientLib zmq zmqpp ${OpenCV_LIBS} pthread)
 
 # Expose as library
 target_include_directories(FlightGogglesClientLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_compile_options(FlightGogglesClientLib PRIVATE -W)
