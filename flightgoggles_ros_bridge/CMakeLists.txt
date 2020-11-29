@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(flightgoggles_ros_bridge)
 
 add_compile_options(-std=c++11)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-everything")
 
 # Default to building in release mode when no options are set
 if(NOT CMAKE_BUILD_TYPE)
