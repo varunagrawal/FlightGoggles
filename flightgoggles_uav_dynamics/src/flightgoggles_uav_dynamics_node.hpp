@@ -10,6 +10,9 @@
 #ifndef UAV_DYNAMICS_HPP
 #define UAV_DYNAMICS_HPP
 
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
+
 // ROS includes
 #include <ros/ros.h>
 #include <ros/time.h>
@@ -29,7 +32,7 @@
 #include <nav_msgs/Odometry.h>
 #include "flightgoggles_uav_dynamics/UAVState.h"
 
-#include "../libs/multicopterDynamicsSim/multicopterDynamicsSim.hpp"
+#include "multicopter_sim/multicopterDynamicsSim.hpp"
 
 #include <sstream>
 #include <random>

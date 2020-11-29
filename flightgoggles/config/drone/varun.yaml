@@ -12,10 +12,10 @@ flightgoggles_uav_dynamics:
     max_prop_speed: 2200.0
     moment_arm: 0.08
     motor_time_constant: 0.02
-    motor_rotational_inertia: 6.62e-6
+    motor_rotational_inertia: 0 #6.62e-6
     thrust_coefficient: 1.91e-6
     torque_coefficient: 2.6e-7
-    drag_coefficient: 0.0
+    drag_coefficient: 0.0 #0.1
     aeromoment_coefficient_xx: 0.003
     aeromoment_coefficient_yy: 0.003
     aeromoment_coefficient_zz: 0.003
