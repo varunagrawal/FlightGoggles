@@ -3,7 +3,7 @@ project(flightgoggles_uav_dynamics)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -W")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-everything")
 
 # Default to building in release mode when no options are set
 if(NOT CMAKE_BUILD_TYPE)
@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     tf2
     tf2_ros
+    multicopter_sim
 )
 
 ## System dependencies are found with CMake's conventions
@@ -145,9 +146,6 @@ include_directories(
 #   src/${PROJECT_NAME}/flightgoggles_uav_dynamics.cpp
 # )
 
-add_library(inertialMeasurementSim libs/multicopterDynamicsSim/inertialMeasurementSim.cpp)
-add_library(multicopterDynamicsSim libs/multicopterDynamicsSim/multicopterDynamicsSim.cpp)
-
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -172,9 +170,6 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
-
-target_link_libraries(multicopterDynamicsSim inertialMeasurementSim)
-target_link_libraries(${PROJECT_NAME}_node multicopterDynamicsSim)
 
 #############
 ## Install ##
