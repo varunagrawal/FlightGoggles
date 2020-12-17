@@ -176,7 +176,7 @@ unity_incoming::RenderOutput_t FlightGogglesClient::handleImageResponse()
 
         // Tell OpenCv that the input is RGB.
         if (renderMetadata.channels[i]==3){
-            cv::cvtColor(new_image, new_image, CV_RGB2BGR);
+            cv::cvtColor(new_image, new_image, cv::COLOR_RGB2BGR);
         }
 
         // Add image to output vector
